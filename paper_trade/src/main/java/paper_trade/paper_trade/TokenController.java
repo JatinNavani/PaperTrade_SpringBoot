@@ -40,6 +40,8 @@ public class TokenController {
     private KiteService kiteService;
 	@Autowired
     private SQLiteService sqliteTableCreator;
+	@Autowired
+    private RabbitMQProducer rabbitMQProducer;
 	
 
 
@@ -95,7 +97,9 @@ public class TokenController {
     public String startPrice() {
         try {
             if (!kiteService.isConnected) {
-                kiteService.startStreamingPrices();
+            	rabbitMQProducer.sendHello();
+            	kiteService.sendDummyTicksToRabbitMQ();
+                //kiteService.startStreamingPrices();
                 return "redirect:/PriceSuccess";
             } else {
                 System.out.println("Restarting");

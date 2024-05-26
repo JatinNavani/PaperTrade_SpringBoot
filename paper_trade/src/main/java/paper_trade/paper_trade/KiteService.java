@@ -13,6 +13,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -160,6 +161,73 @@ public class KiteService {
 		    }
 		}
 	 
+	 private boolean dummyContinueSending = true; 
+	 
+	 public void sendDummyTicksToRabbitMQ() {
+		    while (dummyContinueSending) { // Continue sending as long as continueSending is true
+		        try {
+		            // Load instrument tokens from CSV file
+		            ArrayList<Long> tokens = new ArrayList<>();
+		            File csvFile = new File("D:/instruments/instruments_gen.csv");
+		            Scanner scanner = new Scanner(new FileReader(csvFile));
+
+		            // Skip the header row (if present)
+		            if (scanner.hasNextLine()) {
+		                scanner.nextLine();
+		            }
+
+		            // Read each line of the CSV file
+		            while (scanner.hasNextLine()) {
+		                String line = scanner.nextLine();
+		                String[] values = line.split(",");
+
+		                // Assuming "instrument_token" is at index 3 (change index if needed)
+		                if (values.length > 3) {
+		                    try {
+		                        long token = Long.parseLong(values[3]); // Convert String to long
+		                        tokens.add(token);
+		                    } catch (NumberFormatException e) {
+		                        // Handle potential parsing errors (optional)
+		                        System.err.println("Error parsing instrument_token: " + values[3]);
+		                    }
+		                }
+		            }
+
+		            scanner.close();
+
+		            // Generate dummy ticks for each instrument token
+		            Random random = new Random();
+		            ArrayList<Tick> dummyTicks = new ArrayList<>();
+		            for (long instrumentToken : tokens) {
+		                double lastTradedPrice = 100 + (200 - 100) * random.nextDouble();
+
+		                Tick tick = new Tick();
+		                tick.setInstrumentToken(instrumentToken);
+		                tick.setLastTradedPrice(lastTradedPrice);
+
+		                dummyTicks.add(tick);
+		            }
+
+		            // Process the dummy ticks (optional)
+		            priceService.processTicks(dummyTicks);
+
+		            // Send the ticks to RabbitMQ
+		            for (Tick tick : dummyTicks) {
+		                String price = String.valueOf(tick.getLastTradedPrice());
+		                long instrumentToken = tick.getInstrumentToken();
+		                rabbitMQProducer.sendPriceAndToken(price, instrumentToken);
+		            }
+
+		            // Sleep for a specified duration before sending the next batch of ticks (optional)
+		            Thread.sleep(1000); // Sleep for 1 second (adjust as needed)
+		        } catch (IOException | InterruptedException e) {
+		            e.printStackTrace();
+		        }
+		    }
+		}
+
+
+	 
 	 public boolean isConnected = false;
 	 
 	 public void startStreamingPrices() throws IOException, WebSocketException, KiteException {
@@ -255,7 +323,7 @@ public class KiteService {
 	            	for (Tick tick : ticks) {
 	                    String price = String.valueOf(tick.getLastTradedPrice());
 	                    long instrumentToken = tick.getInstrumentToken();
-	                    rabbitMQProducer.sendPriceAndToken(price, instrumentToken);
+	                    //rabbitMQProducer.sendPriceAndToken(price, instrumentToken);
 	                }
 	            }
 	        });

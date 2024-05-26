@@ -46,7 +46,7 @@ public class RabbitMQConfig {
 
     @Bean
     public Binding binding(Queue priceQueue, TopicExchange priceExchange) {
-        return BindingBuilder.bind(priceQueue).to(priceExchange).with("price.#");
+        return BindingBuilder.bind(priceQueue).to(priceExchange).with("dummy.#");
     }
 
     @Bean

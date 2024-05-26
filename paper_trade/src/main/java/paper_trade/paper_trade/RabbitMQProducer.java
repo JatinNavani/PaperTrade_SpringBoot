@@ -17,7 +17,19 @@ public class RabbitMQProducer {
 
     public void sendPriceAndToken(String price, long instrumentToken) {
         String message = price + "|" + instrumentToken; // Combine price and instrument token
-        rabbitTemplate.convertAndSend("testExchange", "price.#", message);
+        rabbitTemplate.convertAndSend("dummyExchange", "dummy.#", message);
         System.out.println("Sent price and instrument token: " + message);
+        
+        
+        
+    }
+    
+    public void sendHello() {
+        String message = "Hello From RabbitMQ";
+        rabbitTemplate.convertAndSend("HelloExchange1", "hello1.#", message);
+        System.out.println("Sent price and instrument token: " + message);
+        
+        
+        
     }
 }
