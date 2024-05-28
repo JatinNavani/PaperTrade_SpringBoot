@@ -34,7 +34,7 @@ import com.zerodhatech.models.Margin;
 
 
 @Controller
-public class TokenController {
+public class WebController {
 	
 	@Autowired
     private KiteService kiteService;
@@ -97,9 +97,9 @@ public class TokenController {
     public String startPrice() {
         try {
             if (!kiteService.isConnected) {
-            	rabbitMQProducer.sendHello();
-            	kiteService.sendDummyTicksToRabbitMQ();
-                //kiteService.startStreamingPrices();
+            	
+            	//kiteService.sendDummyTicksToRabbitMQ();
+                kiteService.startStreamingPrices();
                 return "redirect:/PriceSuccess";
             } else {
                 System.out.println("Restarting");

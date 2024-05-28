@@ -4,12 +4,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -26,15 +22,14 @@ import com.zerodhatech.kiteconnect.kitehttp.SessionExpiryHook;
 import com.zerodhatech.kiteconnect.kitehttp.exceptions.KiteException;
 import com.zerodhatech.models.Instrument;
 import com.zerodhatech.models.Tick;
-import com.zerodhatech.models.User;
 import com.zerodhatech.ticker.KiteTicker;
 import com.zerodhatech.ticker.OnConnect;
 import com.zerodhatech.ticker.OnDisconnect;
 import com.zerodhatech.ticker.OnError;
 import com.zerodhatech.ticker.OnTicks;
 
-import com.opencsv.CSVReader;
-import com.opencsv.exceptions.CsvValidationException;
+import com.google.gson.Gson;
+import paper_trade.payload.PricePayload;
 
 
 @Service
@@ -48,6 +43,7 @@ public class KiteService {
 	
 	private KiteTicker tickerProvider;
     private ArrayList<Long> tokens;
+
 	
 	 @Scheduled(cron = "0 30 8 * * *")
     public void fetchAndStoreInstruments() {
@@ -168,7 +164,7 @@ public class KiteService {
 		        try {
 		            // Load instrument tokens from CSV file
 		            ArrayList<Long> tokens = new ArrayList<>();
-		            File csvFile = new File("D:/instruments/instruments_gen.csv");
+		            File csvFile = new File("D:/instruments/instruments_MCX.csv");
 		            Scanner scanner = new Scanner(new FileReader(csvFile));
 
 		            // Skip the header row (if present)
@@ -215,7 +211,13 @@ public class KiteService {
 		            for (Tick tick : dummyTicks) {
 		                String price = String.valueOf(tick.getLastTradedPrice());
 		                long instrumentToken = tick.getInstrumentToken();
-		                rabbitMQProducer.sendPriceAndToken(price, instrumentToken);
+		                PricePayload message = new PricePayload();
+		                
+		                message.setInstrumentToken(instrumentToken);
+		                message.setPrice(instrumentToken);
+		                
+		                
+		                rabbitMQProducer.sendPriceAndToken(message);
 		            }
 
 		            // Sleep for a specified duration before sending the next batch of ticks (optional)
@@ -237,7 +239,7 @@ public class KiteService {
 	        
 		 KiteConnect kiteConnect = getKiteConnect();
 		 ArrayList<Long> tokens = new ArrayList<>(); // Temporary ArrayList for Strings
-	        File csvFile = new File("D:/instruments/instruments_gen.csv");
+	        File csvFile = new File("D:/instruments/instruments_MCX.csv");
 	        Scanner scanner = new Scanner(new FileReader(csvFile));
 
 	        // Skip the header row (if present)
@@ -323,7 +325,11 @@ public class KiteService {
 	            	for (Tick tick : ticks) {
 	                    String price = String.valueOf(tick.getLastTradedPrice());
 	                    long instrumentToken = tick.getInstrumentToken();
-	                    //rabbitMQProducer.sendPriceAndToken(price, instrumentToken);
+	                    PricePayload message = new PricePayload();
+	                    message.setInstrumentToken(instrumentToken);
+	                    message.setPrice(instrumentToken);
+	                    
+	                    rabbitMQProducer.sendPriceAndToken(message);
 	                }
 	            }
 	        });
