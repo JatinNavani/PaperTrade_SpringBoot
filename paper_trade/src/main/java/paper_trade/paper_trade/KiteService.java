@@ -5,10 +5,10 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -21,6 +21,7 @@ import com.zerodhatech.kiteconnect.KiteConnect;
 import com.zerodhatech.kiteconnect.kitehttp.SessionExpiryHook;
 import com.zerodhatech.kiteconnect.kitehttp.exceptions.KiteException;
 import com.zerodhatech.models.Instrument;
+import com.zerodhatech.models.Quote;
 import com.zerodhatech.models.Tick;
 import com.zerodhatech.ticker.KiteTicker;
 import com.zerodhatech.ticker.OnConnect;
@@ -28,7 +29,6 @@ import com.zerodhatech.ticker.OnDisconnect;
 import com.zerodhatech.ticker.OnError;
 import com.zerodhatech.ticker.OnTicks;
 
-import com.google.gson.Gson;
 import paper_trade.payload.PricePayload;
 
 
@@ -62,7 +62,26 @@ public class KiteService {
         	e.printStackTrace();
         }
     }
+	 public QuoteResponse getQuote(long instrumentToken) throws KiteException {
+	        try {
+	            String[] instruments = {String.valueOf(instrumentToken)};
+	            KiteConnect kiteConnect = getKiteConnect();
+	            Map<String, Quote> quotes = kiteConnect.getQuote(instruments);
+	            Quote quote = quotes.get(String.valueOf(instrumentToken));
+
+	            double sellPrice = quote.depth.buy.get(4).getPrice();
+	            double buyPrice = quote.depth.sell.get(4).getPrice();
+
+	            return new QuoteResponse(instrumentToken, buyPrice, sellPrice);
+	        } catch (IOException e) {
+	            e.printStackTrace();
+	            // Handle exceptions
+	            return null;
+	        }
+	    }
 	 
+	 
+	
 	 public KiteConnect getKiteConnect(){
 		 KiteConnect kiteConnect = new KiteConnect("5kg9ivjlrub91in3", true);
          kiteConnect.setUserId("XRN389");
@@ -206,18 +225,21 @@ public class KiteService {
 
 		            // Process the dummy ticks (optional)
 		            priceService.processTicks(dummyTicks);
-
+		            List<String> uniqueDeviceUUIDs = sqliteTableCreator.getUniqueDeviceUUIDs();
 		            // Send the ticks to RabbitMQ
 		            for (Tick tick : dummyTicks) {
-		                String price = String.valueOf(tick.getLastTradedPrice());
+		                double price = tick.getLastTradedPrice();
 		                long instrumentToken = tick.getInstrumentToken();
 		                PricePayload message = new PricePayload();
 		                
 		                message.setInstrumentToken(instrumentToken);
-		                message.setPrice(instrumentToken);
+		                message.setPrice(price);
 		                
 		                
-		                rabbitMQProducer.sendPriceAndToken(message);
+		                for (String deviceUUID : uniqueDeviceUUIDs) {
+		                
+		                rabbitMQProducer.sendPriceAndToken(message,deviceUUID);
+		                }
 		            }
 
 		            // Sleep for a specified duration before sending the next batch of ticks (optional)
@@ -321,16 +343,33 @@ public class KiteService {
 	            @Override
 	            public void onTicks(ArrayList<Tick> ticks) {
 	            	priceService.processTicks(ticks);
-	            	
+	            	/*
 	            	for (Tick tick : ticks) {
-	                    String price = String.valueOf(tick.getLastTradedPrice());
+	                    double price = tick.getLastTradedPrice();
 	                    long instrumentToken = tick.getInstrumentToken();
 	                    PricePayload message = new PricePayload();
 	                    message.setInstrumentToken(instrumentToken);
-	                    message.setPrice(instrumentToken);
+	                    message.setPrice(price);
 	                    
-	                    rabbitMQProducer.sendPriceAndToken(message);
+	                    //rabbitMQProducer.sendPriceAndToken(message);
 	                }
+	                */
+	            	List<String> uniqueDeviceUUIDs = sqliteTableCreator.getUniqueDeviceUUIDs();
+		            // Send the ticks to RabbitMQ
+		            for (Tick tick : ticks) {
+		            	double price = tick.getLastTradedPrice();
+	                    long instrumentToken = tick.getInstrumentToken();
+		                PricePayload message = new PricePayload();
+		                
+		                message.setInstrumentToken(instrumentToken);
+	                    message.setPrice(price);
+		                
+		                
+		                for (String deviceUUID : uniqueDeviceUUIDs) {
+		                
+		                rabbitMQProducer.sendPriceAndToken(message,deviceUUID);
+		                }
+		            }
 	            }
 	        });
 	        // Make sure this is called before calling connect.

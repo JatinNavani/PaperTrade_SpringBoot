@@ -21,5 +21,12 @@ public class ApplicationStartup implements ApplicationListener<ApplicationReadyE
         } else {
             System.out.println("Table already exists.");
         }
+        
+        if (!sqliteService.hasWatchlistTable()) {
+            sqliteService.createWatchlistTable();
+            System.out.println("Watchlist table created successfully.");
+        } else {
+            System.out.println("Watchlist table already exists.");
+        }
     }
 }

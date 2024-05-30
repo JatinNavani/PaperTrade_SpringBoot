@@ -16,6 +16,10 @@ public class PricePayload implements Serializable{
     public PricePayload() {
         // Initialize default values if needed
     }
+    public PricePayload(long instrumentToken, double price) {
+        this.instrumentToken = instrumentToken;
+        this.price = price;
+    }
 
     // Getters and setters
     public double getPrice() {

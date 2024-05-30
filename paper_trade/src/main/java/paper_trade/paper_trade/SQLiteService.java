@@ -5,6 +5,8 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 
@@ -24,6 +26,12 @@ public class SQLiteService {
             "created_at DATETIME DEFAULT CURRENT_TIMESTAMP" +  // Automatically captures the insertion time
             ");";
 
+    public static final String CREATE_TABLE_SQL_watchlist = "CREATE TABLE IF NOT EXISTS watchlist (" +
+            "id INTEGER ," +
+            "instrument_token TEXT," +
+            "created_at DATETIME DEFAULT CURRENT_TIMESTAMP," +  // Automatically captures the insertion time
+            "PRIMARY KEY (id, instrument_token)" +
+            ");";
     
  
 
@@ -171,6 +179,157 @@ public class SQLiteService {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+    
+    public void createWatchlistTable() {
+        try (Connection connection = DriverManager.getConnection(JDBC_URL);
+             PreparedStatement statement = connection.prepareStatement(CREATE_TABLE_SQL_watchlist)) {
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("Error creating watchlist table: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public boolean hasWatchlistTable() {
+        String sql = "SELECT COUNT(*) AS table_count FROM sqlite_master WHERE type='table' AND name='watchlist'";
+        try (Connection connection = DriverManager.getConnection(JDBC_URL);
+             PreparedStatement preparedStatement = connection.prepareStatement(sql);
+             ResultSet resultSet = preparedStatement.executeQuery()) {
+            return resultSet.next() && resultSet.getInt("table_count") > 0;
+        } catch (SQLException e) {
+            System.err.println("Error checking if watchlist table exists: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    public void insertIntoWatchlist(String id, List<Long> instrumentTokens) {
+        try {
+            // Connect to the SQLite database
+            Connection connection = DriverManager.getConnection(JDBC_URL);
+            // Create a prepared statement object to delete existing entries for the provided id
+            PreparedStatement deleteStatement = connection.prepareStatement("DELETE FROM watchlist WHERE id = ?");
+
+            // Set the value for the prepared statement parameter
+            deleteStatement.setString(1, id);
+
+            // Execute the SQL DELETE statement
+            deleteStatement.executeUpdate();
+
+            // Close the delete statement
+            deleteStatement.close();
+
+            // Create a prepared statement object
+            PreparedStatement insertStatement = connection.prepareStatement("INSERT INTO watchlist (id, instrument_token) VALUES (?, ?)");
+
+            // Set values for the prepared statement parameters
+            for (Long token : instrumentTokens) {
+                // Set values for the prepared statement parameters
+                insertStatement.setString(1, id);
+                insertStatement.setLong(2, token);
+
+                // Execute the SQL INSERT statement
+                insertStatement.executeUpdate();
+            }
+
+            // Close the insert statement
+            insertStatement.close();
+
+            // Close the connection
+            connection.close();
+
+            System.out.println("Watchlist stock inserted into database successfully.");
+        } catch (SQLException e) {
+            System.err.println("Error inserting watchlist stock into database: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    
+    
+    
+    public List<String> getInstrumentTokensById(int id) {
+        List<String> instrumentTokens = new ArrayList<>();
+        String sql = "SELECT instrument_token FROM watchlist WHERE id = ?";
+        try (Connection connection = DriverManager.getConnection(JDBC_URL);
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            
+            // Set the value for the parameterized query
+            preparedStatement.setInt(1, id);
+            
+            // Execute the query
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                // Iterate through the result set and add instrument tokens to the list
+                while (resultSet.next()) {
+                    instrumentTokens.add(resultSet.getString("instrument_token"));
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error retrieving instrument tokens by id: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return instrumentTokens;
+    }
+    
+    public boolean isInstrumentInWatchlist(long instrumentToken, String deviceUUID) {
+        String sql = "SELECT COUNT(*) AS token_count FROM watchlist WHERE id = ? AND instrument_token = ?";
+        try (Connection connection = DriverManager.getConnection(JDBC_URL);
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            // Set values for the prepared statement parameters
+            preparedStatement.setString(1, deviceUUID);
+            preparedStatement.setLong(2, instrumentToken);
+
+            // Execute the query
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                // If there is a result, return true
+                if (resultSet.next() && resultSet.getInt("token_count") > 0) {
+                    return true; // Instrument token is in the watchlist for the device
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error checking if instrument is in watchlist: " + e.getMessage());
+            e.printStackTrace();
+        }
+        // Return false if the instrument token is not found in the watchlist or if there is an exception
+        return false;
+    }
+
+    public int getUniqueDeviceCount() {
+        String sql = "SELECT COUNT(DISTINCT id) AS unique_device_count FROM watchlist";
+        try (Connection connection = DriverManager.getConnection(JDBC_URL);
+             PreparedStatement preparedStatement = connection.prepareStatement(sql);
+             ResultSet resultSet = preparedStatement.executeQuery()) {
+
+            // If there is a result, return the count of unique device IDs
+            if (resultSet.next()) {
+                return resultSet.getInt("unique_device_count");
+            }
+        } catch (SQLException e) {
+            System.err.println("SQL Error: " + e.getMessage());
+            e.printStackTrace();
+        }
+        // Return 0 if no data is found or if there is an exception
+        return 0;
+    }
+    
+    public List<String> getUniqueDeviceUUIDs() {
+        List<String> uniqueDeviceUUIDs = new ArrayList<>();
+
+        try (Connection connection = DriverManager.getConnection(JDBC_URL);
+             PreparedStatement preparedStatement = connection.prepareStatement("SELECT DISTINCT id FROM watchlist");
+             ResultSet resultSet = preparedStatement.executeQuery()) {
+
+            while (resultSet.next()) {
+                String deviceUUID = resultSet.getString("id");
+                uniqueDeviceUUIDs.add(deviceUUID);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return uniqueDeviceUUIDs;
     }
 
 
