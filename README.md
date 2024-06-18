@@ -25,7 +25,7 @@ This repository contains the backend component of the Paper Trading Project, imp
 
   Ensure RabbitMQ is installed and running. Update the application properties (application.properties or application.yml) with RabbitMQ configuration details.
 
-  For detailed setup instructions, refer to: [RabbitMQ step by step guide]([https://github.com/JatinNavani/PaperTrading](https://medium.com/@jatinnavani/getting-started-with-rabbitmq-on-aws-ec2-a-step-by-step-guide-8a0db9c40d3a)) 
+  For detailed setup instructions, refer to: [RabbitMQ step by step guide](https://medium.com/@jatinnavani/getting-started-with-rabbitmq-on-aws-ec2-a-step-by-step-guide-8a0db9c40d3a)
 
 # RabbitMQ Config
 
