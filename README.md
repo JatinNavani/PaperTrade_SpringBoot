@@ -22,11 +22,11 @@ This repository contains the backend component of the Paper Trading Project, imp
 
 ## Configuration and Setup
 
-1.Configure RabbitMQ
+# 1.Configure RabbitMQ
 
   Ensure RabbitMQ is installed and running. Update the application properties (application.properties or application.yml) with RabbitMQ configuration details.
 
-  For more details : https://medium.com/@jatinnavani/getting-started-with-rabbitmq-on-aws-ec2-a-step-by-step-guide-8a0db9c40d3a
+  For detailed setup instructions, refer to:  https://medium.com/@jatinnavani/getting-started-with-rabbitmq-on-aws-ec2-a-step-by-step-guide-8a0db9c40d3a
 
 # RabbitMQ Config
 spring.rabbitmq.host=localhost
@@ -37,7 +37,7 @@ spring.rabbitmq.password=guest
 Example configuration in application.properties:
 
 
-2.# Create a Kite Developers account
+# 2. Create a Kite Developers account
 
 Visit Kite Developers and create an account. Obtain API credentials (API key and API secret key) from your Kite Developer account dashboard.
 
@@ -47,15 +47,15 @@ Update the application properties with your Kite API credentials (API key, API s
 
 
 
-3.Get a CSV file of all stocks
+# 3.Get a CSV file of all stocks
 Now give the path to store instruments in fetchAndStoreInstruments method in KiteService class.
 
-4.Build the project using Maven.
+# 4.Build the project using Maven.
 
 mvn clean install
 
 
-5.Run the Application
+# 5.Run the Application
 
 Run the Spring Boot application.
 
