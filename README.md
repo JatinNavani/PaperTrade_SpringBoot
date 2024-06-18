@@ -11,9 +11,8 @@ This repository contains the backend component of the Paper Trading Project, imp
 
 ## Repository Structure
 
-- **Backend (Spring Boot)**: [[Link to Spring Boot Repository](https://github.com/JatinNavani/PaperTrade_SpringBoot)](#)
-- **Frontend (Android Studio)**: [[Link to Android Studio Repository](https://github.com/JatinNavani/PaperTrading)](#)
-
+- **Backend (Spring Boot)**: [[Link to Spring Boot Repository](https://github.com/JatinNavani/PaperTrade_SpringBoot)]
+- **Frontend (Android Studio)**: [[Link to Android Studio Repository](https://github.com/JatinNavani/PaperTrading)]
   
 ## Prerequisites
 
