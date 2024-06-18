@@ -29,13 +29,14 @@ This repository contains the backend component of the Paper Trading Project, imp
   For detailed setup instructions, refer to:  https://medium.com/@jatinnavani/getting-started-with-rabbitmq-on-aws-ec2-a-step-by-step-guide-8a0db9c40d3a
 
 # RabbitMQ Config
-spring.rabbitmq.host=localhost
-spring.rabbitmq.port=5672
-spring.rabbitmq.username=guest
-spring.rabbitmq.password=guest
+
 
 Example configuration in application.properties:
 
+spring.rabbitmq.host=localhost\
+spring.rabbitmq.port=5672\
+spring.rabbitmq.username=guest\
+spring.rabbitmq.password=guest
 
 # 2. Create a Kite Developers account
 
