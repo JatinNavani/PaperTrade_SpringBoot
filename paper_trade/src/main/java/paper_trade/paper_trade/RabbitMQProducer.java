@@ -29,33 +29,7 @@ public class RabbitMQProducer {
 
     @Value("${price.exchange.name}")
     private String priceExchange;
-/*
-    public void sendPriceAndToken(PricePayload payload) {
-    	String jsonMessage = gson.toJson(payload); 
-        rabbitTemplate.convertAndSend("dummyExchange", "dummy.#", jsonMessage);
-        System.out.println("Sent price and instrument token- " + jsonMessage);
-        
-        
-        
-    }
-    */
-    /*
-    public void sendPriceAndToken(PricePayload payload) {
-        try {
-            // Assuming you have declared the exchange and queue properly in RabbitMQConfig
-        	String jsonMessage = gson.toJson(payload);
 
-            String routingKey = "instrument." + payload.getInstrumentToken();
-
-            
-            rabbitTemplate.convertAndSend(priceExchange, routingKey, jsonMessage);
-
-            System.out.println("Sent price and instrument token- " + jsonMessage);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-    */
     
     public void sendPriceAndToken(PricePayload payload, String deviceUUID) {
         try {

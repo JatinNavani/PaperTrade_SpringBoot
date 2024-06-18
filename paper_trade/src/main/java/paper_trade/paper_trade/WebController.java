@@ -55,10 +55,10 @@ public class WebController {
     public String updateTokens(@RequestParam(name="request_token") String requestToken) {
     	
     	try {
-    	KiteConnect kiteConnect = new KiteConnect("5kg9ivjlrub91in3", true);
+    	KiteConnect kiteConnect = new KiteConnect("api_key", true); // put kite api_key
 
     	// Set userId.
-    	kiteConnect.setUserId("XRN389");
+    	kiteConnect.setUserId("XXXXXX"); // put zerodha userid
     	String url = kiteConnect.getLoginURL();
     	
     	kiteConnect.setSessionExpiryHook(new SessionExpiryHook() {
@@ -68,7 +68,7 @@ public class WebController {
             }
         });
     	
-    	User user =  kiteConnect.generateSession(requestToken,"hmyvclm4ut5l269no5p4up63ez7a254y");
+    	User user =  kiteConnect.generateSession(requestToken,"api_secret");//Put your api_secret key
         kiteConnect.setAccessToken(user.accessToken);
         kiteConnect.setPublicToken(user.publicToken);
         final String request_token = requestToken;
@@ -159,7 +159,7 @@ public class WebController {
         } else {
             
         	
-        	return "redirect:https://kite.zerodha.com/connect/login?v=3&api_key=5kg9ivjlrub91in3";
+        	return "redirect:https://kite.zerodha.com/connect/login?v=3&api_key=api_key";  //Put your api_key
             
         }
         

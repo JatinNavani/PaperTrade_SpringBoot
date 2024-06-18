@@ -1,4 +1,4 @@
 aws:
-  access-key: AKIA5FTZBLZIXM2Y6NEP
-  secret-key: 7RAZFRPyKrovFuqGBUXuxU+QwJVguXyfpjhTEtyj
+  access-key: YOUR_ACCESS_KEY
+  secret-key: YOUR_SECRET_KEY
   region: ap-south-1
