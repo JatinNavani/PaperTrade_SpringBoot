@@ -14,6 +14,7 @@ import java.text.NumberFormat;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -47,7 +48,9 @@ public class WebController {
 
     // JDBC URL for SQLite database
     public static final String JDBC_URL = "jdbc:sqlite:tokens.db";
-
+    
+    
+    @CrossOrigin(origins = "https://jatinnavanibucket.s3.ap-south-1.amazonaws.com")
     @GetMapping("/updateToken")
     public String updateTokens(@RequestParam(name="request_token") String requestToken) {
     	
@@ -80,11 +83,11 @@ public class WebController {
         
         return "redirect:/LoginSuccess";} catch (KiteException e) {
             System.out.println(e.message+" "+e.code+" "+e.getClass().getName());
+            return "redirect:/LoginFail";
         }catch (JSONException | IOException e) {
             e.printStackTrace();
-            return "Login Failed";
+            return "redirect:/LoginFail";
         }
-    	return "Login Failed";
     }
     
     @GetMapping("/RefreshInstruments")
@@ -112,11 +115,35 @@ public class WebController {
             return "Error";
         }
     }
+    @GetMapping("/startPriceMCX")
+    public String startPriceMCX() {
+        try {
+            if (!kiteService.isConnected) {
+            	
+            	kiteService.sendDummyTicksToRabbitMQ();
+                
+                return "redirect:/PriceSuccess";
+            } else {
+                System.out.println("Restarting");
+                kiteService.stopStreamingPrices();
+                kiteService.startStreamingPrices();
+                return "redirect:/PriceSuccess";
+            }
+        } catch (WebSocketException | KiteException | IOException e) {
+            e.printStackTrace();
+            return "Error";
+        }
+    }
     
    
     @GetMapping("/LoginSuccess")
     public String loginSuccessPage() {
     	return "LoginSuccess.html";
+ // return the name of the view you want to show after successful login
+    }
+    @GetMapping("/LoginFail")
+    public String loginFailPage() {
+    	return "LoginFail.html";
  // return the name of the view you want to show after successful login
     }
     
@@ -151,9 +178,34 @@ public class WebController {
  // return the name of the view you want to show after successful login
     }
     
-    
-    
-    
+    @GetMapping("/deleteTokensTable")
+    public void deleteTokensTable() {
+        try (Connection connection = DriverManager.getConnection(JDBC_URL)) {
+            PreparedStatement preparedStatement = connection.prepareStatement("DELETE FROM tokens");
+            preparedStatement.executeUpdate();
+            System.out.println("Tokens table cleared successfully.");
+            
+        } catch (SQLException e) {
+        	System.out.println("SQLException: ");
+            
+        }
+    }
+
+    // New route to delete the contents of the watchlist table
+    @GetMapping("/deleteWatchlistTable")
+    public void deleteWatchlistTable() {
+        try (Connection connection = DriverManager.getConnection(JDBC_URL)) {
+            PreparedStatement preparedStatement = connection.prepareStatement("DELETE FROM watchlist");
+            preparedStatement.executeUpdate();
+            System.out.println("Watchlist table cleared successfully.");
+            
+        } catch (SQLException e) {
+        	System.out.println("SQLException: ");
+            
+        }
+    }
+
+ 
     private void insertTokensIntoDatabase(String requestToken,String accessToken,String publicToken) {
         try {
             // Connect to the SQLite database
